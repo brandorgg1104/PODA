@@ -279,11 +279,11 @@
           if (selectedButton.dataset.correct === 'true') {
             correctAnswersCount++;
             feedbackContainer.className = 'block mt-4 p-3 rounded-lg text-sm bg-green-100 dark:bg-green-900/50 text-green-800 dark:text-green-200 fade-in';
-            feedbackContainer.innerHTML = `<p class="font-bold">Benar!</p><p>${questionData.explanation || ''}</p>`;
+            feedbackContainer.innerHTML = `<p class="font-bold">Tepat sekalii &#128293 &#128293</p><p>${questionData.explanation || ''}</p>`;
           } else {
             selectedButton.classList.add('wrong-answer');
             feedbackContainer.className = 'block mt-4 p-3 rounded-lg text-sm bg-red-100 dark:bg-red-900/50 text-red-800 dark:text-red-200 fade-in';
-            feedbackContainer.innerHTML = `<p class="font-bold">Kurang Tepat.</p><p>${questionData.explanation || ''}</p>`;
+            feedbackContainer.innerHTML = `<p class="font-bold">salah lagii nih &#128557; &#128557;,</p><p>${questionData.explanation || ''}</p>`;
           }
         
           nextBtn.textContent = (currentQuestionIndex < quizData.length - 1) ? 'Lanjut' : 'Selesai';
@@ -345,6 +345,7 @@
 </body>
 
 </html>
+
 
 
 
