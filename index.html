@@ -162,13 +162,6 @@
                     return false;
                 }
             }
-                        if (!localStorage.getItem('quizOrder')) {
-              const shuffled = shuffle(data);
-              localStorage.setItem('quizOrder', JSON.stringify(shuffled));
-              quizData = shuffled;
-            } else {
-              quizData = JSON.parse(localStorage.getItem('quizOrder'));
-            }
 
             // Fungsi untuk mengacak urutan array (Fisher-Yates Shuffle)
                 function shuffle(array) {
@@ -333,6 +326,7 @@
 </body>
 
 </html>
+
 
 
 
