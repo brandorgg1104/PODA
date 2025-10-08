@@ -209,68 +209,89 @@
                     displayQuestion();
                 }
             }
+        
+                   function displayQuestion() {
+          feedbackContainer.classList.add('hidden');
+          nextBtn.classList.add('hidden');
+        
+          if (quizData.length === 0) {
+            console.error("Quiz data is empty. Cannot display question.");
+            return;
+          }
+        
+          const q = quizData[currentQuestionIndex];
+          questionText.textContent = q.question;
+          optionsContainer.innerHTML = '';
+        
+          // Progress
+          const progress = ((currentQuestionIndex + 1) / quizData.length) * 100;
+          progressBar.style.width = `${progress}%`;
+          progressText.textContent = `Pertanyaan ${currentQuestionIndex + 1} dari ${quizData.length}`;
+        
+          // --- siapkan opsi jadi array & acak ---
+          // q.options: {A: "...", B:"...", C:"...", D:"...", (E:"...")}
+          const entries = Object.entries(q.options) // [['A','...'], ['B','...'], ...]
+            .filter(([, val]) => val && String(val).trim() !== ''); // buang yang kosong (jika E tidak dipakai)
+        
+          // tandai mana yang benar; simpan juga key asli untuk pencatatan
+          let opts = entries.map(([key, text]) => ({
+            key,                     // 'A' | 'B' | ...
+            text,                    // isi opsi
+            isCorrect: key === q.correctAnswer
+          }));
+        
+          // Fisher–Yates shuffle
+          for (let i = opts.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [opts[i], opts[j]] = [opts[j], opts[i]];
+          }
+        
+          // render tombol sesuai urutan baru
+          opts.forEach((opt, idx) => {
+            const btn = document.createElement('button');
+            btn.className = 'option-btn w-full text-left p-3 bg-gray-100 dark:bg-gray-700 rounded-lg border-2 border-transparent hover:bg-gray-200 dark:hover:bg-gray-600';
+            // tidak menampilkan label A/B asli agar tidak membingungkan setelah diacak
+            // tampilkan bullet/nomor urut baru saja
+            btn.innerHTML = `<span class="font-bold">${idx + 1}.</span> ${opt.text}`;
+            btn.dataset.correct = opt.isCorrect ? 'true' : 'false';
+            btn.dataset.originalKey = opt.key; // kalau ingin menyimpan jawaban sebagai A/B/C/D
+            btn.addEventListener('click', checkAnswer);
+            optionsContainer.appendChild(btn);
+          });
+        }
 
-            function displayQuestion() {
-                feedbackContainer.classList.add('hidden');
-                nextBtn.classList.add('hidden');
-                
-                if (quizData.length === 0) {
-                    console.error("Quiz data is empty. Cannot display question.");
-                    return;
-                }
-
-                const questionData = quizData[currentQuestionIndex];
-                questionText.textContent = questionData.question;
-                optionsContainer.innerHTML = '';
-
-                // Update Progress
-                const progress = ((currentQuestionIndex + 1) / quizData.length) * 100;
-                progressBar.style.width = `${progress}%`;
-                progressText.textContent = `Pertanyaan ${currentQuestionIndex + 1} dari ${quizData.length}`;
-
-                Object.entries(questionData.options).forEach(([key, value]) => {
-                    const button = document.createElement('button');
-                    button.className = 'option-btn w-full text-left p-3 bg-gray-100 dark:bg-gray-700 rounded-lg border-2 border-transparent hover:bg-gray-200 dark:hover:bg-gray-600';
-                    button.innerHTML = `<span class="font-bold">${key}.</span> ${value}`;
-                    button.dataset.key = key;
-                    button.addEventListener('click', checkAnswer);
-                    optionsContainer.appendChild(button);
-                });
+                   function checkAnswer(event) {
+          const selectedButton = event.currentTarget;
+          const questionData = quizData[currentQuestionIndex];
+        
+          // simpan jawaban user dalam bentuk key asli (A/B/C/D) dari opsi yang dipilih
+          const selectedOriginalKey = selectedButton.dataset.originalKey || '';
+          userAnswers[currentQuestionIndex] = selectedOriginalKey;
+        
+          // kunci semua tombol & highlight yang benar
+          const allBtns = optionsContainer.querySelectorAll('.option-btn');
+          allBtns.forEach(btn => {
+            btn.disabled = true;
+            if (btn.dataset.correct === 'true') {
+              btn.classList.add('correct-answer');
             }
+          });
+        
+          // cek benar/salah berdasar flag
+          if (selectedButton.dataset.correct === 'true') {
+            correctAnswersCount++;
+            feedbackContainer.className = 'block mt-4 p-3 rounded-lg text-sm bg-green-100 dark:bg-green-900/50 text-green-800 dark:text-green-200 fade-in';
+            feedbackContainer.innerHTML = `<p class="font-bold">Benar!</p><p>${questionData.explanation || ''}</p>`;
+          } else {
+            selectedButton.classList.add('wrong-answer');
+            feedbackContainer.className = 'block mt-4 p-3 rounded-lg text-sm bg-red-100 dark:bg-red-900/50 text-red-800 dark:text-red-200 fade-in';
+            feedbackContainer.innerHTML = `<p class="font-bold">Kurang Tepat.</p><p>${questionData.explanation || ''}</p>`;
+          }
+        
+          nextBtn.textContent = (currentQuestionIndex < quizData.length - 1) ? 'Lanjut' : 'Selesai';
+          nextBtn.classList.remove('hidden');
+        }
 
-            function checkAnswer(event) {
-                const selectedButton = event.currentTarget;
-                const selectedKey = selectedButton.dataset.key;
-                const questionData = quizData[currentQuestionIndex];
-
-                // Store user's answer
-                userAnswers[currentQuestionIndex] = selectedKey;
-
-                const allOptionButtons = optionsContainer.querySelectorAll('.option-btn');
-                allOptionButtons.forEach(btn => {
-                    btn.disabled = true;
-                    if (btn.dataset.key === questionData.correctAnswer) {
-                        btn.classList.add('correct-answer');
-                    }
-                });
-
-                if (selectedKey === questionData.correctAnswer) {
-                    correctAnswersCount++; // Increment correct answer count
-                    feedbackContainer.className = 'block mt-4 p-3 rounded-lg text-sm bg-green-100 dark:bg-green-900/50 text-green-800 dark:text-green-200 fade-in';
-                    feedbackContainer.innerHTML = `<p class="font-bold">Benar!</p><p>${questionData.explanation}</p>`;
-                } else {
-                    selectedButton.classList.add('wrong-answer');
-                    feedbackContainer.className = 'block mt-4 p-3 rounded-lg text-sm bg-red-100 dark:bg-red-900/50 text-red-800 dark:text-red-200 fade-in';
-                    feedbackContainer.innerHTML = `<p class="font-bold">Wahh kurang tepat nih,</p><p>${questionData.explanation}</p>`;
-                }
-                
-                if (currentQuestionIndex < quizData.length - 1) {
-                    nextBtn.textContent = 'Lanjut';
-                } else {
-                    nextBtn.textContent = 'Selesai';
-                }
-                nextBtn.classList.remove('hidden');
-            }
 
             async function handleNext() {
                 currentQuestionIndex++;
@@ -326,6 +347,7 @@
 </body>
 
 </html>
+
 
 
 
