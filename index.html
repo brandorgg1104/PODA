@@ -148,7 +148,7 @@
                     }
                     const data = await response.json();
                     if (data && data.length > 0) {
-                        quizData = data;
+                        quizData = shuffle(data);
                         console.log("Quiz Data loaded:", quizData);
                         return true;
                     } else {
@@ -162,6 +162,26 @@
                     return false;
                 }
             }
+                        if (!localStorage.getItem('quizOrder')) {
+              const shuffled = shuffle(data);
+              localStorage.setItem('quizOrder', JSON.stringify(shuffled));
+              quizData = shuffled;
+            } else {
+              quizData = JSON.parse(localStorage.getItem('quizOrder'));
+            }
+
+            // Fungsi untuk mengacak urutan array (Fisher-Yates Shuffle)
+                function shuffle(array) {
+                  let currentIndex = array.length, randomIndex;
+                  while (currentIndex !== 0) {
+                    randomIndex = Math.floor(Math.random() * currentIndex);
+                    currentIndex--;
+                    [array[currentIndex], array[randomIndex]] = [
+                      array[randomIndex], array[currentIndex]
+                    ];
+                  }
+                  return array;
+                }
 
             async function startQuiz() {
                 // Get user info from inputs
@@ -313,6 +333,7 @@
 </body>
 
 </html>
+
 
 
 
