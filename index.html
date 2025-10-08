@@ -129,7 +129,6 @@
             // Input fields
             const namaLengkapInput = document.getElementById('namaLengkap');
             const nipInput = document.getElementById('nip');
-            const satkerInput = document.getElementById('satker');
 
             let quizData = []; // Ini akan diisi dari Apps Script
             let currentQuestionIndex = 0;
@@ -139,7 +138,6 @@
             // Variables to store user info
             let userName = '';
             let userNIP = '';
-            let userSatker = '';
 
             async function fetchQuizData() {
                 try {
@@ -168,11 +166,11 @@
                 // Get user info from inputs
                 userName = namaLengkapInput.value.trim();
                 userNIP = nipInput.value.trim();
-                userSatker = satkerInput.value.trim();
+            
 
                 // Validate inputs
-                if (!userName || !userNIP || !userSatker) {
-                    alert("Mohon lengkapi semua data diri (Nama Lengkap, NIP, dan Satker) sebelum memulai kuis.");
+                if (!userName || !userNIP || ) {
+                    alert("Mohon lengkapi semua data diri (Nama Lengkap, NIP, dan ) sebelum memulai kuis.");
                     return;
                 }
 
@@ -285,7 +283,6 @@
                 const formData = new FormData();
                 formData.append('nama', userName);
                 formData.append('nip', userNIP); // Add NIP
-                formData.append('satker', userSatker); // Add Satker
                 formData.append('jawabanKuis', formattedUserAnswers);
                 formData.append('hasilKuis', `${correctAnswersCount}/${totalQuestions} (${scorePercentage.toFixed(2)}%)`);
 
