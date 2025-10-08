@@ -252,7 +252,7 @@
             btn.className = 'option-btn w-full text-left p-3 bg-gray-100 dark:bg-gray-700 rounded-lg border-2 border-transparent hover:bg-gray-200 dark:hover:bg-gray-600';
             // tidak menampilkan label A/B asli agar tidak membingungkan setelah diacak
             // tampilkan bullet/nomor urut baru saja
-            btn.innerHTML = `<span class="font-bold">${idx + 1}.</span> ${opt.text}`;
+            btn.innerHTML = `<span class="font-bold">${opt.key}.</span> ${opt.text}`;
             btn.dataset.correct = opt.isCorrect ? 'true' : 'false';
             btn.dataset.originalKey = opt.key; // kalau ingin menyimpan jawaban sebagai A/B/C/D
             btn.addEventListener('click', checkAnswer);
@@ -347,6 +347,7 @@
 </body>
 
 </html>
+
 
 
 
