@@ -82,6 +82,12 @@
                 </div>
 
                 <div id="quiz-container" class="hidden text-left fade-in">
+                    <!-- Timer -->
+                    <div id="timer"
+                     class="mb-3 ml-auto w-fit px-3 py-1 rounded-full text-white text-sm font-semibold bg-emerald-600">
+                          10:00
+                        </div>
+
                     <div id="progress-bar" class="w-full bg-gray-200 rounded-full h-2.5 mb-4 dark:bg-gray-700">
                       <div id="progress-indicator" class="bg-blue-600 h-2.5 rounded-full" style="width: 0%"></div>
                     </div>
@@ -135,6 +141,10 @@
             let currentQuestionIndex = 0;
             let correctAnswersCount = 0; // Menghitung jawaban benar
             let userAnswers = []; // Menyimpan jawaban pengguna
+            let timerInterval = null;
+            let deadlineTs = null;       // timestamp kapan waktu habis (ms)
+            let hasSubmitted = false;    // cegah submit ganda saat waktu habis & selesai normal
+
 
             // Variables to store user info
             let userName = '';
@@ -162,6 +172,64 @@
                     return false;
                 }
             }
+            function startTimer(minutes = 10) {
+  // Lanjutkan timer lama jika ada (anti-cheat reload)
+  const saved = localStorage.getItem('quizDeadline');
+  if (saved) {
+    deadlineTs = parseInt(saved, 10);
+  } else {
+    deadlineTs = Date.now() + minutes * 60 * 1000;
+    localStorage.setItem('quizDeadline', String(deadlineTs));
+  }
+
+  updateTimer(); // render awal
+  timerInterval = setInterval(updateTimer, 1000);
+}
+
+function updateTimer() {
+  const timerEl = document.getElementById('timer');
+  if (!timerEl) return;
+
+  const now = Date.now();
+  const remaining = Math.max(0, deadlineTs - now);
+  const totalSec = Math.floor(remaining / 1000);
+  const mm = String(Math.floor(totalSec / 60)).padStart(2, '0');
+  const ss = String(totalSec % 60).padStart(2, '0');
+  timerEl.textContent = `${mm}:${ss}`;
+
+  // warna peringatan
+  timerEl.classList.toggle('bg-red-600', totalSec <= 60);
+  timerEl.classList.toggle('bg-amber-500', totalSec > 60 && totalSec <= 180);
+  timerEl.classList.toggle('bg-emerald-600', totalSec > 180);
+
+  if (remaining <= 0) timeUp();
+}
+
+function clearTimerSession() {
+  localStorage.removeItem('quizDeadline');
+  if (timerInterval) {
+    clearInterval(timerInterval);
+    timerInterval = null;
+  }
+}
+
+async function timeUp() {
+  if (hasSubmitted) return;
+  hasSubmitted = true;
+  clearTimerSession();
+
+  // Kunci semua opsi
+  optionsContainer.querySelectorAll('.option-btn').forEach(b => b.disabled = true);
+
+  // Tampilkan finish + kirim hasil
+  quizContainer.classList.add('hidden');
+  const finishMessage = finishScreen.querySelector('p.mt-2');
+  finishMessage.textContent = `Waktu habis. Anda menjawab ${correctAnswersCount} dari ${quizData.length} pertanyaan. Terima kasih telah berpartisipasi.`;
+  finishScreen.classList.remove('hidden');
+
+  await sendQuizResultsToSheet();
+}
+
 
             // Fungsi untuk mengacak urutan array (Fisher-Yates Shuffle)
                 function shuffle(array) {
@@ -207,6 +275,8 @@
                     quizContainer.classList.remove('hidden');
                     nextBtn.classList.add('hidden');
                     displayQuestion();
+                    startTimer(10); // 10 menit
+
                 }
             }
         
@@ -283,7 +353,7 @@
           } else {
             selectedButton.classList.add('wrong-answer');
             feedbackContainer.className = 'block mt-4 p-3 rounded-lg text-sm bg-red-100 dark:bg-red-900/50 text-red-800 dark:text-red-200 fade-in';
-            feedbackContainer.innerHTML = `<p class="font-bold">salah lagii nih &#128557; &#128557;,</p><p>${questionData.explanation || ''}</p>`;
+            feedbackContainer.innerHTML = `<p class="font-bold"> maaf ya kamu salah &#128557; &#128557;,</p><p>${questionData.explanation || ''}</p>`;
           }
         
           nextBtn.textContent = (currentQuestionIndex < quizData.length - 1) ? 'Lanjut' : 'Selesai';
@@ -301,6 +371,9 @@
                     const finishMessage = finishScreen.querySelector('p.mt-2'); // Select the message paragraph
                     finishMessage.textContent = `Anda berhasil menjawab ${correctAnswersCount} dari ${quizData.length} pertanyaan dengan benar. Terima kasih telah berpartisipasi. Terus tingkatkan integritas dan sampai jumpa di PODA berikutnya!`;
                     finishScreen.classList.remove('hidden');
+                    hasSubmitted = true;
+                    clearTimerSession();
+
                     
                     // Send quiz results to Google Sheet
                     await sendQuizResultsToSheet();
@@ -345,6 +418,7 @@
 </body>
 
 </html>
+
 
 
 
